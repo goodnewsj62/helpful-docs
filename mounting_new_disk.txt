@@ -1,0 +1,127 @@
+# mounting a newly installed disk on server
+
+# i used the package parted for this example
+
+# 1. check if parted is installed
+-$ dpkg -s parted
+
+# if not installed install it
+
+-$ sudo apt-get update
+-$ sudo apt-get install parted
+
+# 2. check for the new disk 
+# the easiest way to check for disk not partitioned is
+
+-$ sudo parted -l | grep Error
+
+result:
+Error: /dev/sda: unrecognised disk label
+
+#3. the lsblk list all block devices/storage on system
+
+-$ lsblk  
+
+result:
+NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
+sda      8:0    0   100G  0 disk 
+vda    253:0    0    20G  0 disk 
+└─vda1 253:1    0    20G  0 part /
+
+# in the above the new disk is that which is not patition and mounted
+# therfore sda is the newly installed disk and the disk size 
+# of our choice is shown
+
+#4. choose a partition format note: gpt is prefferd over mbr or msdos
+
+-$ sudo parted /dev/sda mklabel gpt
+
+# 5. create new partition 0% 100% is 100 percent of disk space
+
+-$ sudo parted -a opt /dev/sda mkpart primary ext4 0% 100%
+
+#6. check for new partition with lsblk 
+
+-$ lsblk
+
+result:
+NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
+sda      8:0    0   100G  0 disk 
+└─sda1   8:1    0   100G  0 part 
+vda    253:0    0    20G  0 disk 
+└─vda1 253:1    0    20G  0 part /
+
+
+# create file system note: the -L flag is use to give the new partition a
+# labelname also **notice i used sda1 and not sda
+
+-$ sudo mkfs.ext4 -L nameofpartition /dev/sda1
+
+# to change the label do:
+
+-$ sudo e2label /dev/sda1 newlabel
+
+# check again with lsblk
+
+-$ lsblk --fs
+
+result: 
+NAME   FSTYPE LABEL         UUID                                 MOUNTPOINT
+sda                                                              
+└─sda1 ext4   nameofpartition 4b313333-a7b5-48c1-a957-d77d637e4fda 
+vda                                                              
+└─vda1 ext4   DOROOT        050e1e34-39e6-4072-a03e-ae0bf90ba13a /
+
+# now lets mount the filesystem so it can be used and be visible with
+# the call of the df and free command 
+
+# to mount a temporary storage device please it is recomended you mount
+# it on /mnt/  for permanent there is no specific rule to where to mount 
+
+-$ sudo mkdir -p /mnt/data
+
+-$ sudo mount -o /dev/sda1 /mnt/data
+
+# all done but If you wish to mount the filesystem automatically each time the server boots, adjust the /etc/fstab file
+
+-$ sudo nano /etc/fstab
+
+# in the file you could use uuid or label 
+#[Identifier] [Mount point] [FS Type] [Mount Opts] [Dump] [FSCK Check order]
+# using uuid
+
+UUID=4b313333-a7b5-48c1-a957-d77d637e4fda /mnt/data ext4 defaults 0 2
+
+# using label
+LABEL=nameofpartition /mnt/data ext4 defaults 0 2
+
+# now save and close
+
+# if you havent ran the mount command eg sudo mount before editting the 
+#fstab run
+
+-$ sudo mount -a
+
+# test the mount 
+
+-$ df -h -x tmpfs -x devtmpfs
+
+result:
+
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/vda1        20G  1.3G   18G   7% /
+/dev/sda1        99G   60M   94G   1% /mnt/data
+
+# you should see the  lost+found if you ran
+
+-$ ls -l /mnt/data
+
+# root has ownership of the directory, to change this to user, you could 
+# change ownership using chown -R command
+
+result:
+
+total 16
+drwx------ 2 root root 16384 Jun  6 11:10 lost+found
+
+

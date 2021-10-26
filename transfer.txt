@@ -1,0 +1,50 @@
+#login target remote server 
+#install postgres
+create database name;
+create user foo with password 'foo';
+sudo nano /etc/postgresql/X/main/postgresql.conf
+
+#add line 
+
+listen_addresses='*'
+
+sudo nano /etc/postgresql/X/main/pg_hba.conf
+
+#add line 
+
+host  all   all 0.0.0.0/0 md5
+
+# above could be trust for operation without password but changed back 
+#immediately to md5 after work
+
+sudo /etc/init.d/postgresql restart
+# to be sure
+sudo service postgresql restart 
+
+#now go to local terminal/enviroment 
+
+pg_dump -C -h localhost  -U local_db_user  name | psql -h 37.247.55.50 -U foo name
+
+# input local db user password 
+
+# after the database has been successfully copied go to the remote and:
+
+GRANT ALL PRIVILEGES ON DATABASE myproject TO myprojectuser;
+
+\c database
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO <USERNAME>;
+
+#####to copy from intended to remote###
+# loginto remote and from login remote:
+
+scp -r username@host:/path-to-folder /path-to-copy-to
+
+#incase of files 
+
+scp username@host:/path-to-file/ /path-to-copy-to
+
+# note the trailing slash for file and the space after first path in both
+
+
+

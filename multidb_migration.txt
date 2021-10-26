@@ -1,0 +1,17 @@
+backup everything just in case!
+rename your migrations folder to something else (i.e. migrations-old)
+run flask db init --multidb
+copy the contents of migrations-old/versions/* to migrations/versions.
+run flask db stamp head (this marks the additional databases as being updated)
+delete migrations-old
+
+sqllite does not support drop so if you ever want to do something like that and got an error in the versions file do:
+with op.batch_alter_table('token_shortner') as batch_op:
+        batch_op.drop_column('user_id')
+        batch_op.drop_column('post_id')
+
+if only working with sqllite do:
+if db.engine.url.drivername == 'sqlite':
+        migrate.init_app(app, db, render_as_batch=True)
+    else:
+        migrate.init_app(app, db)

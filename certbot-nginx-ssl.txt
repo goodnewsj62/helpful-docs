@@ -1,0 +1,164 @@
+ Let’s Encrypt certificates with NGINX. This new blog is based on newly added NGINX support in certbot.
+
+The Certbot client supports two types of plugins for obtaining and installing certificates: authenticators and installers.
+
+Authenticators validates that you control the domain(s) you are requesting a certificate for, obtains a certificate for the specified domain(s), and places the certificate in the /etc/letsencrypt directory on your machine. The authenticator does not install the certificate (it does not edit any of your server’s configuration files to serve the obtained certificate).
+
+Installers are Plugins used with the install command to install a certificate. These plugins can modify your webserver’s configuration to serve your website over HTTPS using certificates obtained by certbot.
+`http://letsencrypt.readthedocs.io/en/latest/using.html#getting-certificates-and-choosing-plugins`
+
+Let’s Encrypt client provides 3 plugins for different web servers.
+
+apache – Automates obtaining and installing a certificate with Apache 2.4 on Debian-based distributions with libaugeas0 1.0+.
+webroot – Obtains a certificate by writing to the webroot directory of an already running webserver.
+nginx – Automates obtaining and installing a certificate with Nginx.
+standalone – Uses a “standalone” webserver to obtain a certificate. This is useful on systems with no webserver, or when direct integration with the local webserver is not supported or not desired. Requires port 80 or 443 to be available.
+manual – Helps you obtain a certificate by giving you instructions to perform domain validation yourself. Additionally allows you to specify scripts to automate the validation task in a customized way.
+
+We will be using the webroot plugin for this guide
+
+
+$sudo snap install cerbot --classic
+$sudo apt-get update
+$sudo apt-get install python-certbot-nginx
+
+
+$sudo nano /etc/nginx/sites-available/projectname
+
+- Then add the following lines
+## note take note of spaces
+
+server{
+server_name project.com www.project.com;
+	location = /favicon.ico{access_log off; log_not_found off;}
+	
+	location /static/ {
+		root /home/www/projectname;		
+		}
+	
+	location / {
+		include uwsgi_params;
+		proxy_pass: http://127.0.0.1:8080;
+			
+	}
+	
+	location ~ /.well-known{
+		allow all;
+		root /home/www/projectname;
+		}
+
+}
+
+$sudo nginx -t
+$sudo service nginx restart
+
+- lets now install our certificate
+
+$sudo certbot certonly --webroot -w /home/www/projectname -d projectname.com -d www.projectname.com
+
+
+response:
+
+
+IMPORTANT NOTES:
+ - Congratulations! Your certificate and chain have been saved at:
+   /etc/letsencrypt/live/schoolsetal.com/fullchain.pem
+   Your key file has been saved at:
+   /etc/letsencrypt/live/schoolsetal.com/privkey.pem
+   Your cert will expire on 2021-09-01. To obtain a new or tweaked
+   version of this certificate in the future, simply run certbot
+   again. To non-interactively renew *all* of your certificates, run
+   "certbot renew"
+ - If you like Certbot, please consider supporting our work by:
+
+   Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
+   Donating to EFF:                    https://eff.org/donate-le
+
+
+
+
+
+
+
+-remove www. if domain donnt have it
+
+- then add the certificates to the nginx config
+
+server{
+listen 80;
+server_name project.com www.project.com;
+
+	ssl_certificate /etc/letsencrypt/live/project.com/fullchain.pem;
+
+	ssl_certificate_key /etc/letsencrypt/live/project.com/privkey.pem;
+
+	include /etc/letsencrypt/options-ssl-nginx.conf;
+
+	location = /favicon.ico{access_log off; log_not_found off;}
+	
+	location /static/ {
+		root /home/www/projectname;		
+		}
+	
+	location / {
+		include uwsgi_params;
+		proxy_pass: http://127.0.0.1:8080;
+			
+	}
+	
+	location ~ /.well-known{
+		allow all;
+		root /home/www/projectname;
+		}
+
+}
+
+
+- also redirect to https if request was that of http
+
+
+server{
+listen 80;
+server_name project.com www.project.com;
+listen 443 ssl;
+
+
+	ssl_certificate /etc/letsencrypt/live/project.com/fullchain.pem;
+
+	ssl_certificate_key /etc/letsencrypt/live/project.com/privkey.pem;
+
+	include /etc/letsencrypt/options-ssl-nginx.conf;
+	location = /favicon.ico{access_log off; log_not_found off;}
+	
+	location /static/ {
+		root /home/www/projectname;		
+		}
+	
+	location / {
+		include uwsgi_params;
+		proxy_pass: http://127.0.0.1:8080;
+			
+	}
+	
+	location ~ /.well-known{
+		allow all;
+		root /home/www/projectname;
+		}
+	
+	if ($scheme = "http"){
+		return 301 https://$host$request_uri;	
+		}
+
+
+}
+
+
+$sudo nginx -t
+$sudo service nginx restart
+
+
+---------------------------------------------------------
+renewing already expired certbot certificate
+--------------------------------------------------------
+sudo certbot certonly --force-renewal --webroot -w /home/www/projectname -d project.com
+
