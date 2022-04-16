@@ -1,0 +1,31 @@
+RSS fEED
+
+TechSpot RSS feed .. https://www.techspot.com/backend.xml
+AppleInsider RSS feed .. https://appleinsider.com/rss/news/
+The Next Web ..  https://thenextweb.com/feed
+#Computerworld RSS Feed https://www.computerworld.com/index.rss
+#Technosoups ..
+Techmeme Rss Feed .. https://www.techmeme.com/feed.xml?x=1
+#The washington post 
+the verge .. https://www.theverge.com/rss/index.xml
+
+
+blogs
+
+martinfowler https://martinfowler.com/feed.atom //updated
+#geek for geeks https://www.geeksforgeeks.org/feed
+dev.to https://dev.to/feed
+#pluralsight https://www.pluralsight.com/blog.rss.xml
+towardsdatascience https://towardsdatascience.com/feed
+
+##react https://reactjs.org/feed.xml
+#stackoverflow https://stackoverflow.blog/feed
+#pythonistaplatent https://pythonistaplanet.com/feed
+##realpython https://realpython.com/atom.xml?format=xml
+
+
+parser
+##css tricks https://css-tricks.com/feed
+##digitalocean.com/community/tutorials/feed.atom
+##https://medium.com/
+##https://www.freecodecamp.org/news

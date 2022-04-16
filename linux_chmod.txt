@@ -1,0 +1,136 @@
+chmod other words change mod is used to change file permission of files in linux. okay lets get you underestand file permissions as quickly as possible then dive back into using chmod.
+
+to easily check file permission on linux run 
+
+~$ls -l
+
+youll probably get something like this
+
+drwxrwxr-x  2 goodnews goodnews 4.0K Apr 16 13:30 playground2
+
+and what you might be askinfg your self is well whats the meaning of this from the left hand side, Yes the alpabets on the left hand side shows what persion the user and group has, so lets goahead and inteprete this.
+
+the first alphabet denotes the file type 
+
+- means file
+d - means directory
+l - means symbolic link
+
+the other set of 9 characters denote permission as pertaining to user, group and others: that is there are 3 set of permission in which the first three set is for the user second three set is for the group and third set is for other.
+
+the three permission you mostly see is sequential order 
+r - read permission
+w- write permission
+x - execute permission
+
+if there is a - were a ny of this three permission letters are supposed to means that the user or group or others dont have that permission.
+
+others mean any other from user and group
+
+the next thing after the set of permission  is a number which represent hard link
+
+next thing after that number is the user dor user name that has the first three permission from the group of nine permission followed by that is the group that has the next three permissions(second group of three) from the 9 permissions
+
+so lets interprete this 
+
+drwxrwxr-x  2 goodnews getty 4.0K Apr 16 13:30 playground2
+
+i am going to use file and directory interchangeably because everthing in linux is literally a file :)
+
+it means playground2 
+- is a directory
+- user goodnews has permission to read, write and execute the file 
+- group getty also have the right to read,write and execute the file
+
+- other users and groups have permission to read and execute the file but cant write to it
+
+that means if i switch to user sam, well i wont be able to write to playground2
+
+well another thing you should know is that sudo group and root user have the all permission and can perform anything thats why you need to guard your password if using sudo and thats why root user is disabled by default in some linux distributions
+
+
+
+Its time to play around with chmod
+
+there are two ways to change the mode of a file asnd that include
+- numeric or standard
+- symbolic
+
+NUMERIC MODE
+
+take a look at this:
+drwxrwxr-x  2 goodnews goodnews 4.0K Apr 16 13:30 playground2
+
+lets say we want only read and write access for user goodnews read, write and execute for the group and just read and execute for others 
+
+to do so we'll run
+
+~$chmod 675 playground2
+
+oh damm i am leaving now what the heck is all this numbers, okay let me break the command down
+
+0 - means  - (no permission set)
+1 - means x (execute)
+2 - means w  (write)
+3 - means -wx (2+1) ( (excute and write)
+4 - means -r (read)
+5 - means r-x (4+1)(read-execute)
+6 - means rw- (4+2)(read and write)
+7 - means rwx (4+2+1) (read write execute)
+
+woo! that was some numbers, but thats what it basily mean so chmod 777 is all permission given to user who created the file, primary group which user belongs in(usually user can bein multiple groups but the primary group is the main group) and then to other users and groups
+
+so for our last example running that plus running the ls -l like so:
+
+~$chmod 675 playground2
+~$ls -l 
+
+should result:
+drw-rwxr-x 2 goodnews goodnews 4096 Apr 16 13:30 playground2
+
+well the user goodnews who created the file now only has rw permission 
+
+to change it back to  what it was we run:
+~$chmod 775
+
+and then we have:
+
+drwxrwxr-x 2 goodnews goodnews 4096 Apr 16 13:30 playground2
+
+you can already see the fault with this method, we need to remember what the numbers actually mean and we also need to write numbers to represent permissions we dont want to set.
+for instance if i want to set 7 for the group and leave both user and other same iwill have to still write numbers for both of them plus that i wish to change permission.
+
+Well here comes symbolic method 
+
+Symbolic method :
+
+right here its quite easy to do all this with leters and few symbols. 
+
+- represent remove permission
++ represents add permission
+= Set a permission and remove others
+
+then we have letters representing values we wanna set
+r - read
+w - write
+x - execute
+
+then letters represent who we are setting it for
+a - all, both user group and others
+g - group
+o -others
+u -user
+
+
+so easy peasy lets set the permission for execution to be available to all users
+
+
+~$chmod a+x playground2
+
+which mean a-allusers +has(add)permission x-excute
+
+simple right? you can also use the -R flag to set both directory and contents in directory permission
+
+
+Last note:
+there are a trick that could confuse you tho. other users and group permission will not affect you if you are the user or group that created the file. take for example

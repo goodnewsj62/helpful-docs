@@ -1,0 +1,224 @@
+A container is a standard unit of software: which means it contains the software and dependencies or packages required to run the software
+
+okay cool this means the software will yeild the same result or run same way anywhere with no surprises like the code breaking and any of those.
+
+This also means that whats in the container is in the conatiner and is free from external influence in other words or in simpler terms a container is independent or standalone
+
+docker is a tool of eaisly building and managing containers 
+
+although virtual machines can do something a little similar they seems to be slow, bloted and diffcult to share
+
+a virtual machine can be viewed as a simulated computer or a virtual computer on another computer. They are typically installed on top of other operating system: meaning if you are running a windows os you can run a linux or mac os with the help of virtual machine. 
+
+Each virtual machine requires a slice of the good tasty pizza: what i mean by pizza is machine resource such as RAM(memory), hard disk space, processor cycles and so on. 
+
+Now with that being said imagine running mutiples of these with heavy resourse consuming software also in parallel on a machine, Boom there is not enough slice of pizza to go round and Things starts getting weird rt? yep thats it everyting starts becoming slow.
+
+serveral configurations are supposed to be made in these virtual machine os and other stuff like default libraries are installed which may not be useful to the software running on the virtual os you see. 
+
+Docker however uses the installed os containers system or runs and emulated container system on top of the os which docker itself runs ontop (which is light weight) and then your containers can be spun up
+
+The containers only contain relivant installed packages which the software in the container depends on and its more light weight. a file that describes the container and how to rebuild it is created  which is shareable. This allows us to easily share and rebuild container on any os as far docker is installed
+
+
+Docker is based on two concept the dockerimage and the container. The image is what docker use to create containers. Multiple containers which are independent can be built from one image. This ring a bell rt(bulb shines) yes you guessed it right A docker image is like a blueprint used to build a container.
+ 
+An image which is the blueprint used to build the container contains enviroment and code and is read only
+
+A container as defined earlier is a standard unit od software which is a running instance of an image with read and write access
+
+A Dockerfile contains config commands which can be used to build an image 
+
+to build an image in docker you excute this command
+docker build <location of DockerFile>
+
+to run a container based on the image. copy the image id and run
+docker run <image_id>
+
+remember a container is self contained or isolated and cant be accessed by the outside world expect to specify a way in which you can interact with that container. we can do this by passing the -p flag (publish flag)
+
+docker run -p 4000:3000 <image_id>
+the 3000 is the port open to connection specified in the docker file the 4000 is the port will use to connect the localsystem to that internal to docker so we can access the exposed 3000 from localhost:4000
+
+to stop a running container run
+docker ps 
+
+copy the name of the container and then run
+docker stop <name of container>
+
+Theoritically we can build an image from scratch but mostly we'll need other enviroment and packages which our code in the image will depend on. 
+
+
+different docker command for now at least the basics
+
+FROM <PACKAGE> #used to install env dependency image  from docker hub
+WORKDIR <path> #used to specify a file system inside of the container
+COPY <from path> <to path> #used to copy files in a directory to containers path specified
+EXPOSE <port> #self explanatory though this is not necessary but for best practice it is required shows what port the application running in the conatiner is exposed on
+RUN <command> #used to run a certain command when building an image
+CMD ["excutable command", "other parameters"] #used to run command on container level
+
+Note: you must specify the CMD in the docker file if not you'll get an error
+
+
+As an additional quick side-note: For all docker commands where an ID can be used, you don't always have to copy / write out the full id.
+
+You can also just use the first (few) character(s) - just enough to have a unique identifier.
+
+
+conatiners in docker are just like a light layer on top of the docker image, conatiners have read and write access but images are read only 
+
+the container mirrors the file system of the image
+
+############docker layer architecure
+docker uses a layered kind of achitecture, every command in your Dockerfile can be viewed as a layer and this can come to our advantage because this enable caching. 
+meaning if we build an image from the same docker file without any change the build process would be faster and will use what  has been cached
+
+eg
+
+FROM python 
+
+WOKDIR  /data
+
+COPY . .
+
+CMD ["python,"run.py"]
+
+if you run docker build -t pythonscript:py two times the first may do a download of python from docker hub and the later will not do so instead it will use the cached python downloaded 
+for the later command 
+
+we could use this to our advantage 
+imagine building an image for a node js app using the docker file below 
+
+FROM node
+
+WORKDIR /www
+
+COPY ..
+
+RUN npm install
+
+EXPOSE 80
+
+CMD ["node","server.js"]
+
+
+this is what is going to happen for:
+
+first image build
+
+download official node image from docker hub
+create a directory where our files will live
+copy all files from our current working directory to the directory we created in step 2 in the iamge file system
+
+run the command npm install to install all node modules in our package.json
+will expose our container to port 80 when we run container #not must just good practice
+will call the command specified when we run a container
+
+
+then uchange something in server.js file and have to buld an image again
+
+second image build
+
+uses cached node no need for dowload again
+create same working dir
+copy files 
+then run npm install which wont use cache.why? because the file content has change. so the installation process will be done like in the first
+others command will be excuted like the first case
+
+
+what does this imply? Docker will use continue using cache until it see a change (something diffrent from what it has done before) in this case it was our server.js content that change so docker copied again all content and had to run npm install for our package.json file even if we did'nt change anything inside of package.json. We do not really want this so to bypass this we can rewrite this command in this manner
+
+FROM node
+
+WORKDIR /www
+
+COPY ./package.json .
+
+RUN npm install
+
+COPY . .
+
+EXPOSE 80
+
+CMD ["node","server.js"]
+
+we have first of all copied package.json into the image file system and run the npm install command to install the packages before we copied all remaining files in our current directory. 
+This implies that running a build command again for this docker file without any change in the package.json file will use what docker previously cached therefore making the second build faster since we dont have to install the packages all over again. Cool right?
+
+
+so there you have it, using the cache to our advantage.
+
+
+### Docker Volumes
+
+When you shut down a container and $docker rm <container_name> the data stored in that container is gone, well that's is not always what we want. sometimes there are useful files and folders within the container that we might not want to loose if the container is deleted, this is where docker volumes comes in.
+
+Docker volumes helps us let useful data and files persist if after container shutdown or container is removed.
+There are two types of  docker volumes:
+anonymous docker volume 
+named docker volume 
+
+but there is one more that seems like a volume but is not rather it is reffered fro as bind mounts. lets go over it one after the other shall we....
+
+anonymous volumes gets their name because of the mistery behide it, just kidding :) anonymous volumes are volumes created by docker it self when we give the command, they are called anonymous because we dont name name docker do. they lay somewhwere in our filesystem which docker take care of and are given a random name by docker. you can tell docker to create an anonymous volume either by issuing this command in the Docerfile or in the command shell enviroment
+
+VOLUME ["/data/www"]
+
+OR
+ 
+use the -v flag
+
+~$docker run --rm -d --name mycontainer -v /data/www myimage
+
+to also check for created volumes do something like this
+
+~$docker volume ls 
+
+this tells docker to create a volume that has a mapping to /data/www so the files that exists at /data/www will be mapped to a storage somewhere on your host system. okay cool explaination rt?
+but one thing with anonymous volumes is that when the container is removed so is the volume which  you might not be what we want. You might be asking then whats the need?
+Well docker anonymous volumes are still useful as they can help you store temporal files and increase performance a bit, they also can let you persist data you dont want to be overwritten while copying stuff into the docker containers which you'll see later in the bind mount example.
+
+
+named volume are another type of volume created by us, they are called named volume and should already figure out that thats because we assign them a name while creating them. named volumes allows data pesist even after container removal,you probably saying to your sekf bamm they are the real deal rt, well yes except we delete the name volume the data persist and we can easily spun or create another container and instruct it to use the named volume 
+
+note: volumes are containers thing
+
+creating a named volume:
+~$docker volume create namedvolume
+
+using the volume
+~$docker run --rm -d --name containername -v namedvolumeL:/data/www imagename 
+
+so you see above how to create a named volume an attach to a container
+
+
+to this point the volumes exist somewhere on our host filesystem(our machine) and it's not ment to be accessed by us. well with bind mount thats kind of different 
+
+ bind mounts enable us write to a given container. when you create a bind mount files and folders from your local system can be mapped to your container meaning, When a change to the the file or folder on our host system mapped to the container will cause a change in the container files and vise versal expect you specify read only at the container side. This also means files in our local system overides the files in our docker container this could pose a minor problem sometimes as i'll discuss later, but for now lets learn how to create bind mounts.
+
+~$docker run --rm -d --name containername -v /home/localsystem/foo:/app/container/filesystem dockerimage
+
+so all further changes in /home/localsystem/foo will be written to /app/container/filesystem, this is vise versal except you use the read only flag on the container file system like so
+
+~$docker run --rm -d --name containername -v /home/localsystem/foo:/app/container/filesystem:ro dockerimage
+
+note: docker bind mount are used mostly for development purposes where you dont want to be building image fo each changes made to the filesystem, so docker got you covered for that
+
+imagine this case :
+wher your image is like this 
+
+FROM npm 
+
+WORKDIR /data/www
+
+COPY package.json .
+
+RUN npm install
+
+....
+yep the last line run npm install installs and create all needed npm depedndencies into a folder node-modules which will be available to the containers when you create them so you can excute your files without problem, well when creating a container with bind mount our local files overight that in the /data/www which contains the node-module folder that help execution run smoothly. To prevent that from happening thats where the anonymous volume comes in actually the docker respects or considers first volumes with longer internal filesystem part. so to do this we'll go this way.
+
+~$docker run -d --name container name -v /home/localsystem/foo:/data/www:ro -v  /data/www/node-modules image
+
+what docker will do is to regard the longest internal path first which is  /data/www/node-modules image the anonymous volume and then create and backup the node-modules which after then it copies files from our local system directory home/localsystem/foo into the container but then the node-module is copied back to so the content of anonymous volume is in sync with the folder in which it represent.

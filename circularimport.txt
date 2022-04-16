@@ -1,0 +1,13 @@
+just incase you want to add a module outside your workin directory somewhere
+else to your current script without import you could esaily do that by adding
+the file path to the directory containing the .py file to sys.path 
+import sys
+sys.path.appen("_file/path_")
+
+or you could add it to PYTHONPATH env vatriable for linux ~/.bashrc
+
+you could also import a module this way with the help of sys module if it is causing a circular import
+issue
+
+sys.module["folder.module"]
+

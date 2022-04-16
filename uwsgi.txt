@@ -1,0 +1,127 @@
+to use uwsgi application server on a python web application using nginx webserver and ubuntu/debian and sub distro
+
+install uwsgi
+
+
+-$pip install uwsgi
+
+then test the uwsgi server
+
+-$uwsgi --http-socket :8000 --home /home/path-to-app/virtualenviroment --chdir /home/path-to-app -w dot notation to app module:app
+
+example for a project directory myproject and virtualenv folder of venv and a django application
+
+
+-$uwsgi --http-socket :8000 --home /home/www/myproject/venv --chdir /home/www/myproject -w myproject.wsgi:application
+
+other uwsgi param that may come in handy 
+--protocol *use case: uwsgi --protocol=http 
+--socket *use case: uwsgi --socket 0.0.0.0:5000
+
+head to https://uwsgi-docs.readthedocs.io/en/latest for more details
+
+create a uwsgi.service so uwsgi can will run as a daemon service in the background and can spun up on system restart automatically. 
+to do so go to
+
+-$sudo nano /etc/systemd/system/uwsgi.service
+
+enter this into the file
+
+[Unit]
+Description=uWSGI Emperor
+[Service]
+ExecStartPre=/bin/bash -c 'mkdir -p /run/uwsgi; chown www-data /run/uwsgi'
+ExecStart=/usr/local/bin/uwsgi --emperor /etc/uwsgi/apss-enabled
+Restart=always
+KillSignal=SIGQUIT
+Type=notify
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target
+
+save the file
+
+then do this 
+-$sudo systemctl start uwsgi.service
+just in case you change anything in the above file later do
+-$sudo systemctl daemon-reload 
+first before restarting
+
+for errors 
+-$sudo journalctl -t uwsgi.service
+
+go and create a myprojects.ini file in your base project directory. eg that /home/www/myproject
+like so
+-$cd /home/www/myproject && nano myproject.ini
+
+then enter this into the file 
+
+
+[uwsgi]
+chdir = /home/www/myproject
+home = /home/www/myproject/venv
+module = myproject.wsgi:application
+master = true
+processes = 5
+
+protocol = http
+socket    = :8080
+chmod-socket = 666
+vacuum = true
+
+die-on-term = true
+
+
+and then save 
+
+now create a sym link to /etc/uwsgi/apps-available so that it will reflect at apps-enabled and then the uwsgi service will include it or pick it up and expose it to the port
+
+so do this 
+-$sudo ln -s /home/www/myproject/myproject.ini /etc/uwsgi/apps-available/
+
+and that is it 
+
+now to check if evceryting is working 
+run 
+
+-$sudo systemctl status uwsgi.service 
+OR
+-$sudo service uwsgi status
+
+you'll get sometging like this
+
+emperor.uwsgi.service - uWSGI Emperor
+ Loaded: loaded (/etc/systemd/system/emperor.uwsgi.service)
+       Active: active (running) since Tue, 17 May 2011 08:51:31 +0200; 5s ago
+Main PID: 30567 (uwsgi)
+       Status: "The Emperor is governing 1 vassals"
+       CGroup: name=systemd:/system/emperor.uwsgi.service
+               ├ 30567 /root/uwsgi/uwsgi --ini /etc/uwsgi/emperor.ini
+               ├ 30568 /root/uwsgi/uwsgi --ini werkzeug.ini
+               └ 30569 /root/uwsgi/uwsgi --ini werkzeug.ini
+               
+               
+now go to your nginx server context
+for example 
+
+-$sudo nano /etc/nginx/sites-available/myproject
+
+enter in a location to pass all request at that location to the uwsgi application server
+
+location / {
+	include uwsgi_params;
+	proxy_pass 127.0.0.1:8080;
+}
+
+
+save 
+check nginx config
+
+-$sudo nginx -t
+
+reload nginx
+
+-$sudo nginx -s reload
+
+voila! and you are done

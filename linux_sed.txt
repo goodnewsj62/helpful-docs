@@ -1,0 +1,138 @@
+###SED
+You must have noticed how many linux users use sed to work on files with text and how they use sed command to quickly manipulate files content which may lead to the question what is the sed command in linux and how can i use it. well sed is short stream editor and for you to learn best we'll give a series of examples so i'd advice you follow along.
+
+##How to Use sed Intro
+example:
+~$ echo "hey how are you?"| sed "s/how/loud/"
+
+result:
+	hey loud are you
+
+the sed command just replaced the how with loud and it printed the hey loud are you. now if you're a bit confused echo is used to print stuff to the console and the pipe "|" in simple words takes the output of the echo(printed string) and give it to sed as input so sed can work on the output text.
+
+##Usig sed on a file 
+
+example:
+"""sed "s/regular expression or text/replacement""""
+~$sed "s/what/who/" test.txt
+
+result:
+from:
+	what is that
+to:
+	who is that
+
+##Printing only needed matched lines 
+on default the sed command print all lines after an operation has been successfully applied but sometimes thats not what we want as the files may be over hundereds of lines. so lets play around with trying to stop that and only print lines that where affected by our sed operation.
+
+To do this we use the -n option which means quite and p which mean print at the end of the sed operation
+
+from now on test.txt is equivalent to this file content
+
+```you are the man
+what else do you think
+just using this to practice linux abit
+i have a wide intrest you know
+and a very crazy backyard neigbour 
+a man for that matter
+lets go p l a y around boyz!
+```
+
+~$sed -n "s/what/who/p" test.txt
+
+output:
+	who else do you think
+
+see now you dont see the rest of the unaffected lines.
+
+##Specify lines to be replaced
+if you noticed by now sed only replace the first match of the text which might not be what we are actually want. maybe we want to replace from line 1 to 3 pof such occurances we have specified to do so we can  go this way
+
+ ~$sed -n '1,3s/you/fff/p' test.txt
+ 
+ output:
+	fff are the man
+	what else do fff think
+	
+
+okay to do that for just line 2 we could do
+
+ ~$sed -n '2s/you/fff/p' test.txt
+
+output;
+	what else do fff think
+	
+you also can use the g to make a global change like so:
+
+~$sed -n "s/a/ccc/gp" test.txt
+
+output:
+	you cccre the mcccn 
+	whccct else do you think
+	just using this to prcccctice linux cccbit
+	i hcccve ccc wide intrest you know
+	cccnd ccc very crccczy bcccckycccrd neigbour 
+	ccc mcccn for thccct mccctter
+	lets go p l ccc y cccround boyz!
+
+
+you might also have noticed how i use g and p together yes that can also be done.
+
+##Using regular expression
+now you can also matvch lines and text with regular expression and then replace them with desired text. in This example below ^i\shave means a match a line that starts with i having one space followed by have. regular expressions are like little languages of their own and need an indepth knowledge to use effectively so we wont cover them here 
+
+ ~$sed -n "s/^i\shave/*/p" test.txt
+ 
+ output:
+ 	*  a wide intrest you know
+ 	
+ 
+### Using -e flag
+you you can use more than one expression with the  -e flag
+
+sed -n -e "s/man/ann/p" -e "s/you/big/" test.txt
+
+output:
+	big/" test.txt
+	you are the ann
+	a ann for that matter
+
+
+##Other useful sed commands 
+
+#to jsut print a line that match expression
+
+~$sed -n "/you/p" test.txt
+
+output:
+	you are the man
+	what else do you think
+	i have a wide intrest you know
+	
+to print specific lines 
+
+~$sed -n "1,2p" test.txt
+output: 
+	you are the man
+	what else do you think
+	
+#to append to a line or a text
+~$sed "/you/a -- i am inserted" test.txt
+output:
+
+	you are the man
+	-- i am inserted
+	what else do you think
+	-- i am inserted
+	just using this to practice linux abit
+	i have a wide intrest you know
+	-- i am inserted
+	and a very crazy backyard neigbour 
+	a man for that matter
+	lets go p l a y around boyz!
+	
+
+other commands like the -i for insert also exist and "/exp/d"also exist for delete
+
+
+

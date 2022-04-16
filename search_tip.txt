@@ -1,0 +1,36 @@
+google search tip
+
+
+wrap text in quotes to find exact atch: 
+
+--"find this"
+
+find on a particular site with the sight tag, only what is needed is the site url and other site parameter like so:
+
+-- site:github.com my-project
+
+Use the dash to exculde word from search 
+
+-- good guns - ak47
+
+
+Use the before, after and two dots value range to make a search
+
+-- good guns after 2006
+
+--good guns before 2010
+
+-- good guns 2010..2022
+
+Use the filetype to look for a filetype you're looking for
+
+-- filetype:pdf types of horses
+
+
+to know if google has cached your website
+
+--cache:mywebsite.com
+
+use the related tag to find related website 
+
+-- related:x.com

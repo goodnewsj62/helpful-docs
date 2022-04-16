@@ -1,0 +1,23 @@
+Design patterns:
+
+Design patterns are proven used patterns in object oriented design that have used to solve problems over and over again that can be resued and make your code reuseable
+
+Design patterns are classified based on purpose and scope. 
+
+purpose: this refers to the overall function of the pattern which could be futher divided into creational, structural and behavioural patterns.
+
+Scope: This has to the scope, if its an object or a class 
+
+working with interphase over implementation comes with two advantages
+this is mostly done by an abstract class that defines the interphase to be implemented
+
+1. the client does not know or care much about the objects it consumes as far as the object implements the expected interphase
+2. the client does not know the different class which the object are built from it only knows the parent class which is an abstract class
+
+prefer object composition over inheritance.
+
+Inheritance has it pros and cons. a few props is that inheritance(reuse by subclassing) is white-box meaning it's visibility is clear and its relatively easy to implement and its easy for a programmer reading code to easily understand. The second one is that a subclass can extends the functionalities of a parent class without having to rewrite that functionality.
+
+cons: Inheritance increase coupling meaning a change in parent classs may also lead to changes to be made in subclasses. Also Inheritance is said to violate encapsulation meaning objects have access to encapsulated data of super objects. superclass implementation can not be altered during runtime. 
+
+
